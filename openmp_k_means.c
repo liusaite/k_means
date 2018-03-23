@@ -1,14 +1,15 @@
 /* File:  serial_k.c
- * Comple: gcc -g -Wall -o serial_k serial_k.c -lm
- * Run  :  ./a.out <#of data generated> <# of cluster>
+ * Comple: gcc -g -Wall -fopenmp -o serial_k serial_k.c
+ * Run  :  ./a.out <#of data generated> <# of cluster> <# of threads>
  * Output:   Time for k means and result
  *
  *  Minghao Sun
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <math.h>
+#include <omp.h>
+#include <time.h>
 
 typedef struct{
 	double x;
@@ -23,6 +24,7 @@ Point* p;									// point data
 Point* mean;							// k cluster center coordinate
 int* cluster;							//classfier for date size
 int flag=1;								//loop sign
+int thread_count;         // number of thread.
 
 void Initilize_Data();
 void Initilize_Mean();
@@ -37,6 +39,7 @@ int main(int argc,char* argv[]){
 	//command line input
 	data_size=strtol( argv[1],NULL,10);
 	cluster_k=strtol( argv[2],NULL,10);
+  thread_count=strtol( argv[3],NULL,10);
 	//initilize p mean and cluster
 	p=malloc(data_size*sizeof(Point));
 	mean=malloc(cluster_k*sizeof(Point));
@@ -44,7 +47,7 @@ int main(int argc,char* argv[]){
 	//intilize data and cluster center
 	Initilize_Data();
 	Initilize_Mean();
-	// Print(p,data_size,10000);
+	// Print(p,data_size,100);
 	//compute k_means by update rule
 	while(flag){
 		UpdateCluster();
@@ -84,21 +87,28 @@ void UpdateCluster(){
 	int i,j;
 	double min;
 	double distance[data_size][cluster_k];
-	for(i=0;i<data_size;i++){
-		for(j=0;j<cluster_k;j++){
-			distance[i][j]=getDistance(p[i],mean[j]);
-		}
 
-		min=distance[i][0];
-		for(j=0;j<cluster_k;j++){
-			if (min>=distance[i][j]){
-                min = distance[i][j];
-                cluster[i] = j;
-            }
-		}
-	  // printf("cluster is %d\n",cluster[i] );
-		 // printf("(%.3f,%.3f) \t in cluster-%d\n", p[i].x, p[i].y, cluster[i] + 1);
-	}
+  #pragma omp parallel num_threads(thread_count) default(none) \
+	private(i, j, min) shared(data_size,cluster_k,p,mean,distance,cluster)
+	{
+      #pragma omp for
+    	for(i=0;i<data_size;i++){
+    		for(j=0;j<cluster_k;j++){
+    			distance[i][j]=getDistance(p[i],mean[j]);
+    		}
+    		min=distance[i][0];
+
+    		for(j=0;j<cluster_k;j++){
+    			if (min>=distance[i][j]){
+                    min = distance[i][j];
+                    cluster[i] = j;
+          }
+    		}
+    	  // printf("cluster is %d\n",cluster[i] );
+    		 // printf("(%.3f,%.3f) \t in cluster-%d\n", p[i].x, p[i].y, cluster[i] + 1);
+    	}
+
+  }
 }
 /*
  *compute the distance of each two points
@@ -115,17 +125,35 @@ double getDistance(Point point1, Point point2)
 */
 void UpdateCenter(){
 	int i,j;
-  int* count=(int*)calloc(cluster_k,sizeof(int));
-  double* x_sum=(double*)calloc(cluster_k,sizeof(double));
+  int* count=calloc(cluster_k,sizeof(int));
+	double* x_sum=(double*)calloc(cluster_k,sizeof(double));
   double* y_sum=(double*)calloc(cluster_k,sizeof(double));
 	Point* mean_new=malloc(cluster_k*sizeof(Point));
-  for(i=0;i<data_size;i++){
-      x_sum[cluster[i]]+=p[i].x;
-      y_sum[cluster[i]]+=p[i].y;
-      count[cluster[i]]++;
+
+  #pragma omp parallel num_threads(thread_count)
+	{
+		int* count_temp=calloc(cluster_k,sizeof(int));
+		double* x_sum_temp=(double*)calloc(cluster_k,sizeof(double));
+		double* y_sum_temp=(double*)calloc(cluster_k,sizeof(double));
+		#pragma omp for
+    for(i=0;i<data_size;i++){
+      x_sum_temp[cluster[i]]+=p[i].x;
+      y_sum_temp[cluster[i]]+=p[i].y;
+      count_temp[cluster[i]]++;
+    }
+		#pragma omp critical
+		for(i=0;i<cluster_k;i++){
+			x_sum[i]+=x_sum_temp[i];
+			y_sum[i]+=y_sum_temp[i];
+			count[i]+=count_temp[i];
+		}
+		free(x_sum_temp);
+		free(y_sum_temp);
+		free(count_temp);
   }
 
-  for(j=0;j<cluster_k;j++){
+
+		for(j=0;j<cluster_k;j++){
       if(count[j]==0){
   			mean_new[j].x=(rand()/(double)RAND_MAX);
   			mean_new[j].y=(rand()/(double)RAND_MAX);
@@ -137,7 +165,10 @@ void UpdateCenter(){
   			// printf("mean x is %f\n",mean_new[j].x);
   			// printf("mean y is %f\n",mean_new[j].y);
   		}
-    }
+		}
+
+
+
 	// printf("is equal result is %d \n",isEqual(mean_new,mean) );
 	// Print(mean,cluster_k,cluster_time);
 	// Print(mean_new,cluster_k,cluster_time);
