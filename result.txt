@@ -1,0 +1,32 @@
+equal now.
+There are 1 threads,Run time for parallel algorithm is 47.290507 s.
+equal now.
+There are 2 threads,Run time for parallel algorithm is 23.524764 s.
+equal now.
+There are 3 threads,Run time for parallel algorithm is 15.682888 s.
+equal now.
+There are 4 threads,Run time for parallel algorithm is 11.818226 s.
+equal now.
+There are 5 threads,Run time for parallel algorithm is 9.806798 s.
+equal now.
+There are 6 threads,Run time for parallel algorithm is 8.186415 s.
+equal now.
+There are 7 threads,Run time for parallel algorithm is 7.548725 s.
+equal now.
+There are 8 threads,Run time for parallel algorithm is 6.619490 s.
+equal now.
+There are 9 threads,Run time for parallel algorithm is 5.874180 s.
+equal now.
+There are 10 threads,Run time for parallel algorithm is 5.286942 s.
+equal now.
+There are 11 threads,Run time for parallel algorithm is 4.835454 s.
+equal now.
+There are 12 threads,Run time for parallel algorithm is 4.429592 s.
+equal now.
+There are 13 threads,Run time for parallel algorithm is 4.273996 s.
+equal now.
+There are 14 threads,Run time for parallel algorithm is 3.955209 s.
+equal now.
+There are 15 threads,Run time for parallel algorithm is 3.692344 s.
+equal now.
+There are 16 threads,Run time for parallel algorithm is 3.459440 s.

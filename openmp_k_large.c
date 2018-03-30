@@ -141,12 +141,14 @@ void UpdateCenter(){
 	double* x_sum=(double*)calloc(cluster_k,sizeof(double));
   double* y_sum=(double*)calloc(cluster_k,sizeof(double));
 	Point* mean_new=malloc(cluster_k*sizeof(Point));
+	
 	int* count_temp=calloc(cluster_k,sizeof(int));
 	double* x_sum_temp=(double*)calloc(cluster_k,sizeof(double));
 	double* y_sum_temp=(double*)calloc(cluster_k,sizeof(double));
 	#pragma omp parallel num_threads(thread_count) default(none) \
-	private(i,count_temp,x_sum_temp,y_sum_temp) shared(p,x_sum,y_sum,count,data_size,cluster_k)
+	private(i,count_temp,x_sum_temp,y_sum_temp) shared(p,x_sum,y_sum,count,data_size,cluster_k,cluster)
 	{
+
 		#pragma omp for
     for(i=0;i<data_size;i++){
       x_sum_temp[cluster[i]]+=p[i].x;

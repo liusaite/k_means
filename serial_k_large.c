@@ -42,8 +42,10 @@ int main(int argc,char* argv[]){
 	mean=malloc(cluster_k*sizeof(Point));
 	cluster=malloc(data_size*sizeof(int));
 	//intilize data and cluster center
+
 	Initilize_Data();
 	Initilize_Mean();
+	clock_t cpu_begin=clock();
 	// Print(p,data_size,10000);
 	//compute k_means by update rule
 	while(flag){
@@ -51,6 +53,9 @@ int main(int argc,char* argv[]){
 		UpdateCenter();
 		cluster_time++;
 	}
+	clock_t cpu_end=clock();
+	printf("Run time for serial algorithm is %f ms.\n",(double)(cpu_end-cpu_begin)*1000.0/CLOCKS_PER_SEC);
+
 	return 0;
 }
 /*	Initilize_Data()
